@@ -1,16 +1,15 @@
-# alx_backend_graphql_crm/schema.py
 import graphene
+from crm.schema import Query as CRMQuery, Mutation as CRMMutation
 
-# Define the root Query class for your GraphQL API
-class Query(graphene.ObjectType):
-    # 1. Declare a field named 'hello'
-    # 2. Set its type to String (graphene.String)
-    hello = graphene.String()
+# Combine the Query classes
+class Query(CRMQuery, graphene.ObjectType):
+    # This inherits all fields from CRMQuery (hello, customer, all_customers)
+    pass
 
-    # 3. Define the resolver method for the 'hello' field
-    #    The method must be named 'resolve_[field_name]'
-    def resolve_hello(root, info):
-        return "Hello, GraphQL!"
+# Combine the Mutation classes
+class Mutation(CRMMutation, graphene.ObjectType):
+    # This inherits all fields from CRMMutation (create_customer, etc.)
+    pass
 
-# Combine the Query class into an executable Schema
-schema = graphene.Schema(query=Query)
+# Define the final executable schema
+schema = graphene.Schema(query=Query, mutation=Mutation)
