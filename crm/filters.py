@@ -2,7 +2,7 @@ import django_filters
 from django_filters import rest_framework as filters
 from .models import Customer, Product, Order
 
-class PhonePatternFilter(filters.Filter):
+class PhonePatternFilter(django_filters.FilterSet):
     """Custom filter to check if the phone number starts with a specific pattern."""
     def filter(self, queryset, name, value):
         if not value:
@@ -10,7 +10,7 @@ class PhonePatternFilter(filters.Filter):
         # Filters where the phone field starts with the provided value (case-sensitive)
         return queryset.filter(phone__startswith=value)
 
-class CustomerFilter(filters.FilterSet):
+class CustomerFilter(django_filters.FilterSet):
     name = filters.CharFilter(lookup_expr='icontains')
     email = filters.CharFilter(lookup_expr='icontains')
     created_at = filters.DateFromToRangeFilter() # Includes __gte and __lte lookups
@@ -25,7 +25,7 @@ class CustomerFilter(filters.FilterSet):
 
 # --- ProductFilter ---
 
-class ProductFilter(filters.FilterSet):
+class ProductFilter(django_filters.FilterSet):
     name = filters.CharFilter(lookup_expr='icontains')
     price = filters.RangeFilter() # Includes price__gte and price__lte lookups
     stock = filters.RangeFilter() # Includes stock__gte and stock__lte lookups
@@ -40,7 +40,7 @@ class ProductFilter(filters.FilterSet):
 
 # --- OrderFilter ---
 
-class OrderFilter(filters.FilterSet):
+class OrderFilter(django_filters.FilterSet):
     total_amount = filters.RangeFilter()
     order_date = filters.DateFromToRangeFilter()
     
