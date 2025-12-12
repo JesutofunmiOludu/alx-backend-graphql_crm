@@ -3,8 +3,9 @@ from graphene_django.types import DjangoObjectType
 from django.db import transaction, IntegrityError
 from django.core.validators import validate_email, RegexValidator
 from django.core.exceptions import ValidationError
+from graphene_django.filter import DjangoFilterConnectionField
 from .models import Customer, Product, Order
-
+from .filters import CustomerFilter, ProductFilter, OrderFilter
 # --- 1. Graphene Object Types ---
 
 class CustomerType(DjangoObjectType):
@@ -252,3 +253,55 @@ class Mutation(graphene.ObjectType):
     bulk_create_customers = BulkCreateCustomers.Field()
     create_product = CreateProduct.Field()
     create_order = CreateOrder.Field()
+
+class CustomerNode(DjangoObjectType):
+    class Meta:
+        model = Customer
+        # Use the ID field as the unique identifier for Relay
+        interfaces = (graphene.relay.Node,) 
+        fields = ('id', 'name', 'email', 'phone', 'created_at')
+
+class ProductNode(DjangoObjectType):
+    class Meta:
+        model = Product
+        interfaces = (graphene.relay.Node,)
+        fields = ('id', 'name', 'price', 'stock')
+
+class OrderNode(DjangoObjectType):
+    class Meta:
+        model = Order
+        interfaces = (graphene.relay.Node,)
+        fields = ('id', 'customer', 'products', 'total_amount', 'order_date')
+
+# --- 2. Root Query (Updated with DjangoFilterConnectionField) ---
+
+class Query(graphene.ObjectType):
+    # Keep the initial 'hello' query
+    hello = graphene.String()
+    def resolve_hello(root, info):
+        return "Hello, GraphQL!"
+
+    # Use DjangoFilterConnectionField for filtering, pagination, and sorting
+    # all_customers
+    all_customers = DjangoFilterConnectionField(
+        CustomerNode,
+        filterset_class=CustomerFilter,
+        # Allow sorting by name, email, phone, created_at
+        order_by=graphene.List(graphene.String) 
+    )
+
+    # all_products
+    all_products = DjangoFilterConnectionField(
+        ProductNode,
+        filterset_class=ProductFilter,
+        # Allow sorting by name, price, stock
+        order_by=graphene.List(graphene.String)
+    )
+
+    # all_orders
+    all_orders = DjangoFilterConnectionField(
+        OrderNode,
+        filterset_class=OrderFilter,
+        # Allow sorting by total_amount, order_date
+        order_by=graphene.List(graphene.String)
+    )
