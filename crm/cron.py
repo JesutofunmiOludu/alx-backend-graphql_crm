@@ -1,3 +1,5 @@
+from gql.transport.requests import RequestsHTTPTransport
+from gql import gql, Client
 from datetime import datetime
 import requests
 
