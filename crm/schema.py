@@ -3,7 +3,7 @@ from graphene_django.types import DjangoObjectType
 from django.db import transaction, IntegrityError
 from django.core.validators import validate_email, RegexValidator
 from django.core.exceptions import ValidationError
-from graphene_django.filter import DjangoFilterConnectionField
+from graphene_django.filter import DjangoConnectionField
 from .models import Customer, Product, Order
 from .filters import CustomerFilter, ProductFilter, OrderFilter
 # --- 1. Graphene Object Types ---
@@ -253,6 +253,8 @@ class Mutation(graphene.ObjectType):
     bulk_create_customers = BulkCreateCustomers.Field()
     create_product = CreateProduct.Field()
     create_order = CreateOrder.Field()
+    update_low_stock_products = UpdateLowStockProducts.Field()
+
 
 class CustomerNode(DjangoObjectType):
     class Meta:
@@ -305,3 +307,24 @@ class Query(graphene.ObjectType):
         # Allow sorting by total_amount, order_date
         order_by=graphene.List(graphene.String)
     )
+
+class UpdateLowStockProducts(graphene.Mutation):
+    success = graphene.Boolean()
+    message = graphene.String()
+    products = graphene.List(ProductType)
+
+    @transaction.atomic
+    def mutate(self, info):
+        low_stock_products = Product.objects.filter(stock__lt=10)
+
+        updated_products = []
+        for product in low_stock_products:
+            product.stock += 10
+            product.save()
+            updated_products.append(product)
+
+        return UpdateLowStockProducts(
+            success=True,
+            message=f"{updated_products.__len__()} products were restocked successfully.",
+            products=updated_products
+        )
