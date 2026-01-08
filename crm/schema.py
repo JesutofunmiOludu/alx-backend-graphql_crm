@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from graphene_django.filter import DjangoConnectionField
 from .models import Customer, Product, Order
 from .filters import CustomerFilter, ProductFilter, OrderFilter
+from crm.models import Product
 # --- 1. Graphene Object Types ---
 
 class CustomerType(DjangoObjectType):
