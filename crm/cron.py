@@ -20,3 +20,23 @@ def log_crm_heartbeat():
 
     with open(LOG_FILE, "a") as file:
         file.write(message + "\n")
+def update_low_stock():
+    response = requests.post(
+        GRAPHQL_URL,
+        json={"query": MUTATION},
+        headers={"Content-Type": "application/json"},
+        timeout=30
+    )
+
+    data = response.json()
+
+    result = data.get("data", {}).get("updateLowStockProducts", {})
+    products = result.get("products", [])
+
+    log_file = "/tmp/low_stock_updates_log.txt"
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    with open(log_file, "a") as f:
+        f.write(f"\n[{timestamp}] Low stock restock job executed\n")
+        for product in products:
+            f.write(f" - {product['name']} -> New Stock: {product['stock']}\n")
